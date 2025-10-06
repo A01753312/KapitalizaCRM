@@ -1,0 +1,27 @@
+# Web app
+streamlit
+
+# Manejo de datos
+pandas
+numpy
+python-dateutil
+
+# Archivos Excel / CSV
+openpyxl
+xlsxwriter
+
+# Coincidencia difusa y normalización de texto
+fuzzywuzzy
+python-Levenshtein
+unidecode
+
+# Conexión a Google Sheets
+gspread
+gspread-dataframe
+google-auth
+
+# PDF / formatos opcionales
+reportlab
+
+# Utilidades
+pathlib
