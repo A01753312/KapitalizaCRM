@@ -57,12 +57,16 @@ def _gs_credentials():
     # 1) En Streamlit Cloud: leer de secrets
     sa_info = st.secrets.get("gcp_service_account")
     if sa_info:
-        return Credentials.from_service_account_info(dict(sa_info), scopes=scopes)
+        sa = dict(sa_info)
+        # 🔧 CLAVE DEL ARREGLO: convertir '\n' literales a saltos reales
+        if isinstance(sa.get("private_key", None), str):
+            sa["private_key"] = sa["private_key"].replace("\\n", "\n")
+        return Credentials.from_service_account_info(sa, scopes=scopes)
 
     # 2) En local: leer el archivo (si existe)
     with open("service_account.json", "r", encoding="utf-8") as f:
-        sa_info = json.load(f)
-    return Credentials.from_service_account_info(sa_info, scopes=scopes)
+        sa = json.load(f)
+    return Credentials.from_service_account_info(sa, scopes=scopes)
 
 def _gs_open_worksheet(tab_name: str):
     """Abre una pestaña; si no existe, la crea. Usa cache a nivel de módulo para evitar re-autenticación."""
