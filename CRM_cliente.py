@@ -44,15 +44,25 @@ _GS_SH = None
 _GS_WS_CACHE: dict = {}
 
 def _gs_credentials():
-    """ Carga credenciales locales (service_account.json) y las cachea en memoria."""
-    global _GS_CREDS
-    if _GS_CREDS is not None:
-        return _GS_CREDS
+    """
+    Usa credenciales desde Streamlit Secrets en la nube.
+    Si estás local y no tienes secrets, cae a service_account.json (solo desarrollo).
+    """
+    import json
+    import streamlit as st
+    from google.oauth2.service_account import Credentials
+
+    scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+
+    # 1) En Streamlit Cloud: leer de secrets
+    sa_info = st.secrets.get("gcp_service_account")
+    if sa_info:
+        return Credentials.from_service_account_info(dict(sa_info), scopes=scopes)
+
+    # 2) En local: leer el archivo (si existe)
     with open("service_account.json", "r", encoding="utf-8") as f:
         sa_info = json.load(f)
-    scopes = ["https://www.googleapis.com/auth/spreadsheets"]
-    _GS_CREDS = Credentials.from_service_account_info(sa_info, scopes=scopes)
-    return _GS_CREDS
+    return Credentials.from_service_account_info(sa_info, scopes=scopes)
 
 def _gs_open_worksheet(tab_name: str):
     """Abre una pestaña; si no existe, la crea. Usa cache a nivel de módulo para evitar re-autenticación."""
@@ -2618,7 +2628,7 @@ with tab_docs:
                 st.error("⚠️ Eliminar cliente (borra su carpeta y su historial).")
                 st.caption("Siempre dar doble click para confirmar.")
                 if st.button(f"🗑️ Eliminar {cid_sel}", key=f"del_{cid_sel}"):
-                    # registrar en historial antes de eliminar
+                    # registrar antes de eliminar
                     nombre_del = get_nombre_by_id(cid_sel)
                     actor = (current_user() or {}).get("user") or (current_user() or {}).get("email")
                     append_historial(cid_sel, nombre_del, "", "", "", "", f"Eliminado por {actor}", action="CLIENTE ELIMINADO", actor=actor)
